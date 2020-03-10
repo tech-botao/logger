@@ -2,6 +2,7 @@
 package logger
 
 import (
+	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -21,11 +22,27 @@ var once sync.Once
 func init() {
 	once.Do(func() {
 		file := os.Getenv("LOG_FILE")
+		if len(file) == 0 {
+			fmt.Println("Please define environment variables, `LOG_FILE`")
+		} else {
+			fmt.Println("LOG_FILE: "+file)
+		}
 		Log = Logger{
 			Debug: NewLogger(file),
 			Err:   NewErrorLog(file),
 		}
 	})
+}
+
+// 重定义Log文件的位置
+func SetFile(file string) {
+	if len(file) == 0 {
+		return
+	}
+	Log = Logger{
+		Debug: NewLogger(file),
+		Err:   NewErrorLog(file),
+	}
 }
 
 func Any(v interface{}) zap.Field {
@@ -96,7 +113,7 @@ func NewErrorLog(path string) *zap.Logger {
 			createAtomicLevel(zap.WarnLevel),
 		)
 	} else {
-		path = strings.Replace(path, ".log", "-err.log", 1)
+		path = strings.Replace(path, ".log", "_err.log", 1)
 		hook := createLogger(path)
 		core = zapcore.NewCore(
 			zapcore.NewConsoleEncoder(encoderConfig),

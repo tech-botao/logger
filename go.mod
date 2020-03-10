@@ -1,4 +1,4 @@
-module logger
+module github.com/tech-botao/logger
 
 go 1.13
 
